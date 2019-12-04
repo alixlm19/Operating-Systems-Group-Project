@@ -1,4 +1,5 @@
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Random;
 
 public class SchedulingAlgorithms {
@@ -16,7 +17,7 @@ public class SchedulingAlgorithms {
 		this.base = base;
 		this.limit = cylinders + base;
 		this.requests = requests;
-		cylinderRequests = new int[] {98, 183, 37, 122, 14, 124, 65, 67};
+		cylinderRequests = new int[] { 176, 79, 34, 60, 92, 11, 41, 114};
 		//generateRandomRequests(requests);
 		
 	}
@@ -53,27 +54,40 @@ public class SchedulingAlgorithms {
 			 return -1;
 		}
 		
+		int[] queue = new int[cylinderRequests.length + 1];
+		queue[0] = headPtr;
+		System.arraycopy(cylinderRequests, 0, queue, 1, cylinderRequests.length);
+		Arrays.sort(queue);
 		
-		int l = cylinderRequests.length;
-		int[][] queue = new int[l][2];										//Two-dimensional array containing the requests absolute seek times and their seek time signs
+		int[] newQueue = new int[queue.length - 1];
+		int currentHeadIndex = Arrays.binarySearch(queue, headPtr);
+		int i = 0;
+		int left = currentHeadIndex - 1;
+		int right = currentHeadIndex + 1;
 		
-		for(int i = 0; i < l; i++) {
-			queue[i][0] = Math.abs(cylinderRequests[i] - headPtr);			//Absolute seek time
-			queue[i][1] = Integer.signum(cylinderRequests[i] - headPtr);	//Seek time sign
+		//Insert the requests to newQueue from queue by shortest seek time
+		//from the current head position
+		while(i < newQueue.length) {
+			int a = Integer.MAX_VALUE;
+			int b = Integer.MAX_VALUE;
+			if(left >= 0) {
+				a = Math.abs(queue[currentHeadIndex] - queue[left]);
+			}
+			if(right < queue.length) {
+				b = Math.abs(queue[currentHeadIndex] - queue[right]);
+			}
+			if(a < b) {
+				currentHeadIndex = left;
+				left--;
+			} else {
+				currentHeadIndex = right;
+				right++;
+			}
+			
+			newQueue[i] = queue[currentHeadIndex];
+			i++;
 		}
 		
-		//Sort the array by seek time
-		Arrays.sort(queue, new java.util.Comparator<int[]>() {
-		    public int compare(int[] a, int[] b) {
-		        return Integer.compare(a[0], b[0]);
-		    }
-		});
-
-		int[] newQueue = new int[l];										//Array containing the requests queue sorted by seek time
-		for(int i = 0; i < l; i++) {
-			newQueue[i] = Math.abs(queue[i][0] + headPtr * queue[i][1]);    //Covert the seek times in the new requests queue to absolute seek times
-		}
-
 		return calculateDistance(newQueue, headPtr);
 	}
 
