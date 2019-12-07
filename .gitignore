@@ -1,5 +1,5 @@
 #settings
-.settings/*
+/.settings/
 
-.classpath
-.project
+*.classpath
+*.project
